@@ -53,6 +53,7 @@ ALERTA_ENVIRONMENT = the environment in alerta
     
 ## to do. 
     work out how to get the labels/attributes out icinga and into the message $vars$ something..
+    link back to icinga api via alerta integration to remote ack etc
 
 ## License
 ```
