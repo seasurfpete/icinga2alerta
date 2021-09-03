@@ -307,7 +307,7 @@ def notification(token, time,
 
     if notification_type == "ACKNOWLEDGEMENT":
         # alert was ack'd in icinga, ack in alerta
-        ack_alert(alert, note=f'remote ack from {alert.origin}: {notification_author}: {notification_author}')
+        ack_alert(alert, note=f'remote ack from {alert.origin}: {notification_author}: {notification_comment}')
 
     elif notification_type == "CUSTOM":
         add_note_to_alert(alert, f'{notification_author}: {notification_comment}')
