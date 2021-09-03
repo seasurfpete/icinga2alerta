@@ -26,14 +26,33 @@ service notifications.
 
 1. create api-key in alerta server
 2. copy alerta-notification-command.conf into icinga2 conf dir ```/etc/icinga2/conf.d ir /values.d/global something```
-3. copy icinga2alerta.json to /etc/icinga2/
-3. copy the other conf file bits over too. adjust for user
-4. clone this repo onto your server, install python 3 and run ```pip3 install .``` 
+3. copy alerta-notificaion.conf into conf dir. adjust as req for users.
+4. copy icinga2alerta.json to /etc/icinga2/ - adjust as req
+5. copy the other conf file bits over too. adjust for user
+6. clone this repo onto your server, install python 3 and run ```pip3 install .``` 
+
+
+## example config file
+```
+{
+  "ALERTA_API_HOST": "http://your-api:8080/api/alert",
+  "ALERTA_API_KEY": "your alerta api key",
+  "ALERTA_ENVIRONMENT": "dev" 
+}
+```
+ALERTA_ENVIRONMENT = the environment in alerta
 
 ## Supported Features
     create alert
     resolve alert
+    add note to alert via notification
+    ack alerts from icinga2 -> alerta
+     
+## Not Working so Well
+    un-ack of alert - this does not seem possible. maybe via notify after unack
     
+## to do. 
+    work out how to get the labels/attributes out icinga and into the message $vars$ something..
 
 ## License
 ```
