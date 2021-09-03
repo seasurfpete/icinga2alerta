@@ -1,0 +1,5 @@
+{
+  "ALERTA_API_HOST": "http://m.origin.foxtel.com.au:8080/api/alert",
+  "ALERTA_API_KEY": "rcIUKhXXKi8YCVYFzPRtMv5U0WyBpJ5_ugnfI6MP",
+  "ALERTA_ENVIRONMENT": "dev"
+}

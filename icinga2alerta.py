@@ -1,5 +1,5 @@
-# Send your Icinga2 alerts to Telegram
-# Copyright (C) 2018  Max Rosin
+# Send your Icinga2 alerts to alerta (alerta.io)
+# Copyright (C) 2021 Pete Smith
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,15 +26,24 @@ import os
 from datetime import datetime
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
-logging.getLogger('JobQueue').setLevel(logging.INFO)
-logging.getLogger('telegram').setLevel(logging.INFO)
 logging.getLogger('requests').setLevel(logging.INFO)
+log_file = open('/tmp/alerta.log', 'a')
+
+CONFIG = {}
+
+try:
+    CONFIG_FILE = open('/etc/icinga2/icinga2alerta.json')
+    CONFIG = json.loads(CONFIG_FILE.read())
+    print('loaded config')
+except Exception as err:
+    logging.error(f'Error loading config file {err}')
+    quit(1)
 
 SPOOL = '/tmp/icinga2telegram/spool'
 pathlib.Path(SPOOL).mkdir(parents=True, exist_ok=True)
 
 icinga2client = None
-HOSTNAME = os.environ.get('HOSTNAME', 'unknown-host')
+
 
 class Alert(BaseModel):
     id: str = None
@@ -55,7 +64,6 @@ class Alert(BaseModel):
     rawData: str = None
     note: str = "test"
 
-file = open('/tmp/alerta.log', 'a')
 
 severity_mapping = {
     "Up": "ok",
@@ -70,15 +78,13 @@ severity_mapping = {
     "UNKNOWN": "minor",
     "UNREACHABLE": "minor",
 }
+# rcIUKhXXKi8YCVYFzPRtMv5U0WyBpJ5_ugnfI6MP
 
-
-# ALERTA_API_HOST = "http://m.origin.foxtel.com.au:8080/api/alert"
 # ALERTA_API_KEY = "_ezEfniz-WYrDVMBDZpOyPOwOeTqPdEAPpV30iWQ"
 
-ALERTA_API_HOST = "http://localhost:8081/alert"
-ALERTA_API_KEY = "rcIUKhXXKi8YCVYFzPRtMv5U0WyBpJ5_ugnfI6MP"
-
-ALERTA_ENVIRONMENT = "dev"
+ALERTA_API_HOST = CONFIG.get("ALERTA_API_HOST", os.environ.get("ALERTA_API_HOST", "http://m.origin.foxtel.com.au:8080/api/alert"))
+ALERTA_API_KEY = CONFIG.get("ALERTA_API_KEY", os.environ.get("ALERTA_API_KEY", "_ezEfniz-WYrDVMBDZpOyPOwOeTqPdEAPpV30iWQ"))
+ALERTA_ENVIRONMENT = CONFIG.get("ALERTA_ENVIRONMENT", os.environ.get("ALERTA_ENVIRONMENT", "dev"))
 
 headers = {"Authorization": f"Key {ALERTA_API_KEY}",
            "Content-type": "application/json"}
@@ -141,37 +147,10 @@ def close_alert(alert_id, action: str = 'close'):
 
 def create_alert(alert: Alert):
     r = requests.post(f"{ALERTA_API_HOST}", json=alert.dict(), headers=headers)
-    file.write(f'Create Response {r.status_code} {r.text}')
+    log_file.write(f'Create Response {r.status_code} {r.text}')
     return r
 
-#
-# curl -XPOST http://localhost:8080/alert \
-# -H 'Authorization: Key demo-key' \
-# -H 'Content-type: application/json' \
-# -d '{
-#       "attributes": {
-#         "region": "EU"
-#       },
-#       "correlate": [
-#         "HttpServerError",
-#         "HttpServerOK"
-#       ],
-#       "environment": "Production",
-#       "event": "HttpServerError",
-#       "group": "Web",
-#       "origin": "curl",
-#       "resource": "web01",
-#       "service": [
-#         "example.com"
-#       ],
-#       "severity": "major",
-#       "tags": [
-#         "dc1"
-#       ],
-#       "text": "Site is down.",
-#       "type": "exceptionAlert",
-#       "value": "Bad Gateway (501)"
-#     }'
+
 def acknowledge_host(hostname, author):
     """
     Acknowledge a host alert.
@@ -321,7 +300,7 @@ def notification(token, time,
     alert.rawData = alert.json()
     alert.attributes["icinga2link"] = f'{icingaweb2url}/dashboard#!/icingaweb2/monitoring/service/show?host={hostname}&service={servicename}'
 
-    file.write(f' GOT {token}, {time}, {hostname}, {hostdisplayname}, {hostoutput}, {hoststate}, {address}, {address6}, \
+    log_file.write(f' GOT {token}, {time}, {hostname}, {hostdisplayname}, {hostoutput}, {hoststate}, {address}, {address6}, \
     {servicename}, {servicedisplayname}, {serviceoutput}, {servicestate}, {state_type}, {max_attempts}, \
     {notification_type}, {notification_author}, {notification_comment}, {icingaweb2url}, {ack}, {attempts}, {vars}, \
     {groups}')
@@ -337,7 +316,7 @@ def notification(token, time,
         # to close we can send a status of ok, this seems to work as we need to match an id from the values
         create_alert(alert)
 
-    file.close()
+    log_file.close()
 
 
 

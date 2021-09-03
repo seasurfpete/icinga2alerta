@@ -26,6 +26,7 @@ service notifications.
 
 1. create api-key in alerta server
 2. copy alerta-notification-command.conf into icinga2 conf dir ```/etc/icinga2/conf.d ir /values.d/global something```
+3. copy icinga2alerta.json to /etc/icinga2/
 3. copy the other conf file bits over too. adjust for user
 4. clone this repo onto your server, install python 3 and run ```pip3 install .``` 
 
