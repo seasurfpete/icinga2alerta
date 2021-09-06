@@ -253,6 +253,7 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @cli.command()
 @click.option('--token', required=True, help='API of Alerta')
 @click.option('--time', required=True, type=click.INT, help='Time of the event as a UNIX timestamp')
+@click.option('--alerttype', required=True, type=click.Choice(["host", "service"]))
 @click.option('--hostname', required=True)
 @click.option('--hostdisplayname')
 @click.option('--hostoutput')
@@ -277,7 +278,7 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--vars')
 @click.option('--groups')
 def notification(token, time,
-                 hostname, hostdisplayname, hostoutput, hoststate, address, address6,
+                 hostname, hostdisplayname, hostoutput, hoststate, address, address6, alerttype,
                  servicename, servicedisplayname, serviceoutput, servicestate, state_type, max_attempts,
                  notification_type, notification_author, notification_comment, icingaweb2url, ack, attempts, vars, groups):
 
@@ -301,6 +302,7 @@ def notification(token, time,
     alert.attributes["moreInfo"] = f"<a href=\"{icingaweb2url}/icingaweb2/dashboard#!/icingaweb2/monitoring/service/show?host={hostname}&service={servicename}\">Incinga GUI</a>"
     apihost: str = icingaweb2url.replace('http', 'https')
     alert.attributes['externalUrl'] = f'{apihost}:5561'
+    alert.attributes['alertType'] = alerttype
 
     log_file.write(f' GOT {token}, {time}, {hostname}, {hostdisplayname}, {hostoutput}, {hoststate}, {address}, {address6}, \
     {servicename}, {servicedisplayname}, {serviceoutput}, {servicestate}, {state_type}, {max_attempts}, \
