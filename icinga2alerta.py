@@ -298,8 +298,9 @@ def notification(token, time,
                   environment=ALERTA_ENVIRONMENT,
                   origin=icingaweb2url)
     alert.rawData = alert.json()
-    alert.attributes["moreInfo"] = f"<a href=\"{icingaweb2url}/dashboard#!/icingaweb2/monitoring/service/show?host={hostname}&service={servicename}\">Incinga GUI</a>"
-
+    alert.attributes["moreInfo"] = f"<a href=\"{icingaweb2url}/icingaweb2/dashboard#!/icingaweb2/monitoring/service/show?host={hostname}&service={servicename}\">Incinga GUI</a>"
+    apihost: str = icingaweb2url.replace('http', 'https')
+    alert.attributes['externalURL'] = f'{apihost}:5561'
 
     log_file.write(f' GOT {token}, {time}, {hostname}, {hostdisplayname}, {hostoutput}, {hoststate}, {address}, {address6}, \
     {servicename}, {servicedisplayname}, {serviceoutput}, {servicestate}, {state_type}, {max_attempts}, \
