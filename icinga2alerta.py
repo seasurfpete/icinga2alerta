@@ -182,40 +182,6 @@ def acknowledge_service(hostname, servicename, author):
                                               sticky=False,
                                               notify=True)
 
-
-def handler_start(bot, update):
-    """Telegram command handler for /start and /whoami. Sends the chat ID to the user."""
-    logging.debug('{}: start/whois handler'.format(update.message.chat_id))
-    # bot.send_message(chat_id=update.message.chat_id, text='Your chat ID is: {}'.format(update.message.chat_id))
-
-
-def handler_acknowledge(_, update):
-    """Telegram query handler to acknowledge an alert."""
-    logging.debug('{}: acknowledge handler for message {}'.format(update.callback_query.message.chat_id,
-                                                                  update.callback_query.data))
-    try:
-
-        print(f'do handler_ack {_} {update}')
-        # spool_file_path = '{}/{}-{}.json'.format(SPOOL,update.callback_query.message.chat_id, update.callback_query.data)
-        #
-        # with open(spool_file_path, 'r') as spool_file:
-        #     logging.debug('{}: Reading message from {}'.format(update.callback_query.message.chat_id, spool_file_path))
-        #     spool_content = json.load(spool_file)
-        #
-        # if 'servicename' in spool_content:
-        #     acknowledge_service(spool_content['hostname'], spool_content['servicename'], update.callback_query.from_user.mention_markdown())
-        # else:
-        #     acknowledge_host(spool_content['hostname'], update.callback_query.from_user.mention_markdown())
-        #
-        # update.callback_query.message.edit_text(update.callback_query.message.text_markdown,
-        #                                         parse_mode = telegram.ParseMode.MARKDOWN,
-        #                                         disable_web_page_preview = True)
-        # pathlib.Path(spool_file_path).unlink()
-    except Exception as e:
-        logging.error('Unable to acknowledge the alert: {}'.format(e))
-        # update.callback_query.answer(text='Unable to acknowledge the alert. Please use icingaweb2 instead.')
-
-
 @click.group()
 def cli():
     pass
@@ -241,15 +207,6 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
                                              password=icinga2_api_password,
                                              ca_certificate=icinga2_cacert)
 
-    # updater = Updater(token=token)
-    # dispatcher = updater.dispatcher
-    # dispatcher.add_handler(CommandHandler('start', handler_start))
-    # dispatcher.add_handler(CommandHandler('whoami', handler_start))
-    # dispatcher.add_handler(CallbackQueryHandler(handler_acknowledge))
-    # updater.start_polling()
-    # updater.idle()
-
-
 @cli.command()
 @click.option('--token', required=True, help='API of Alerta')
 @click.option('--time', required=True, type=click.INT, help='Time of the event as a UNIX timestamp')
@@ -258,15 +215,16 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--hostdisplayname')
 @click.option('--hostoutput')
 @click.option('--hoststate', required=True, type=click.Choice(['UP', 'DOWN']))
-@click.option('--address', required=True)
+@click.option('--resource', required=True)
 @click.option('--address6')
-@click.option('--servicename')
+@click.option('--event')
+@click.option('--service')
 @click.option('--servicedisplayname')
-@click.option('--serviceoutput')
+@click.option('--text')
 @click.option('--max-attempts')
 @click.option('--attempts')
 @click.option('--state-type', type=click.Choice(['SOFT', 'HARD']))
-@click.option('--servicestate', type=click.Choice(['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']))
+@click.option('--severity', type=click.Choice(['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']))
 @click.option('--notification-type', required=True, type=click.Choice(
     ['ACKNOWLEDGEMENT', 'CUSTOM', 'DOWNTIMEEND', 'DOWNTIMEREMOVED', 'DOWNTIMESTART', 'FLAPPINGEND', 'FLAPPINGSTART',
      'PROBLEM', 'RECOVERY']))
@@ -278,8 +236,8 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--vars')
 @click.option('--groups')
 def notification(token, time,
-                 hostname, hostdisplayname, hostoutput, hoststate, address, address6, alerttype,
-                 servicename, servicedisplayname, serviceoutput, servicestate, state_type, max_attempts,
+                 hostname, hostdisplayname, hostoutput, hoststate, resource, address6, alerttype,
+                 event, servicedisplayname, text, severity, state_type, max_attempts,
                  notification_type, notification_author, notification_comment, icingaweb2url, ack, attempts, vars, groups):
 
     hostdisplayname = hostname if hostdisplayname is None else hostdisplayname
@@ -288,24 +246,24 @@ def notification(token, time,
     # Create an alertID from the hostname.servicename so we can always find it to delete it etc.
     # alert_id = str(uuid.uuid3(uuid.NAMESPACE_DNS, f'{hostdisplayname}.{servicename}'))
     alert = Alert(
-                  resource=address,
-                  event=f'{servicename}',
-                  service=[servicename],
-                  severity=severity_mapping.get(servicestate),
-                  correlate=[servicename],
+                  resource=resource,
+                  event=f'{event}',
+                  service=[event],
+                  severity=severity_mapping.get(severity),
+                  correlate=[event],
                   value=f'{attempts}/{max_attempts} ({state_type})',
-                  text=f'{notification_type} {serviceoutput}',
-                  group=servicename,
+                  text=f'{notification_type} {text}',
+                  group=event,
                   environment=ALERTA_ENVIRONMENT,
                   origin=icingaweb2url)
     alert.rawData = alert.json()
     alert.attributes["moreInfo"] = f"<a href=\"{icingaweb2url}/icingaweb2/dashboard#!/icingaweb2/monitoring/service/show?host={hostname}&service={servicename}\">Incinga GUI</a>"
     apihost: str = icingaweb2url.replace('http', 'https')
-    alert.attributes['externalUrl'] = f'{apihost}:5665'
+    alert.attributes['externalUrl'] = f'{apihost}:5561'
     alert.attributes['alertType'] = alerttype
-
-    log_file.write(f' GOT {token}, {time}, {hostname}, {hostdisplayname}, {hostoutput}, {hoststate}, {address}, {address6}, \
-    {servicename}, {servicedisplayname}, {serviceoutput}, {servicestate}, {state_type}, {max_attempts}, \
+    log_file.write(f' VARS={vars}')
+    log_file.write(f' GOT {token}, {time}, {hostname}, {hostdisplayname}, {hostoutput}, {hoststate}, {resource}, {address6}, \
+    {event}, {servicedisplayname}, {text}, {severity}, {state_type}, {max_attempts}, \
     {notification_type}, {notification_author}, {notification_comment}, {icingaweb2url}, {ack}, {attempts}, {vars}, \
     {groups}')
 
