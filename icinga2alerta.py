@@ -253,7 +253,7 @@ def notification(token, time,
                   correlate=[event],
                   value=f'{attempts}/{max_attempts} ({state_type})',
                   text=f'{notification_type} {text}',
-                  group=event,
+                  group=event or 'noData',
                   environment=ALERTA_ENVIRONMENT,
                   origin=icingaweb2url)
     alert.rawData = alert.json()
