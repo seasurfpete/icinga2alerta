@@ -245,6 +245,7 @@ def notification(token, time,
 
     # Create an alertID from the hostname.servicename so we can always find it to delete it etc.
     # alert_id = str(uuid.uuid3(uuid.NAMESPACE_DNS, f'{hostdisplayname}.{servicename}'))
+
     alert = Alert(
                   resource=resource,
                   event=f'{event}',
@@ -253,7 +254,7 @@ def notification(token, time,
                   correlate=[event],
                   value=f'{attempts}/{max_attempts} ({state_type})',
                   text=f'{notification_type} {text}',
-                  group=event or 'noData',
+                  group=resource,
                   environment=ALERTA_ENVIRONMENT,
                   origin=icingaweb2url)
     alert.rawData = alert.json()
