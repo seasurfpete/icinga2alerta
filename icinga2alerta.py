@@ -214,7 +214,7 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--hostname', required=True)
 @click.option('--hostdisplayname')
 @click.option('--hostoutput')
-@click.option('--hoststate', required=True)
+@click.option('--hoststate', required=True, type=click.Choice(['UP', 'DOWN']))
 @click.option('--resource', required=True)
 @click.option('--address6')
 @click.option('--event')
