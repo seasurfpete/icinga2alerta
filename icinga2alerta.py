@@ -214,7 +214,7 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--hostname', required=True)
 @click.option('--hostdisplayname')
 @click.option('--hostoutput')
-@click.option('--hoststate', required=True, type=click.Choice(['UP', 'DOWN']))
+@click.option('--hoststate', required=True)
 @click.option('--resource', required=True)
 @click.option('--address6')
 @click.option('--event')
@@ -224,7 +224,7 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--max-attempts')
 @click.option('--attempts')
 @click.option('--state-type', type=click.Choice(['SOFT', 'HARD']))
-@click.option('--severity', type=click.Choice(['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']))
+@click.option('--severity')
 @click.option('--notification-type', required=True, type=click.Choice(
     ['ACKNOWLEDGEMENT', 'CUSTOM', 'DOWNTIMEEND', 'DOWNTIMEREMOVED', 'DOWNTIMESTART', 'FLAPPINGEND', 'FLAPPINGSTART',
      'PROBLEM', 'RECOVERY']))
@@ -237,7 +237,7 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--groups')
 def notification(token, time,
                  hostname, hostdisplayname, hostoutput, hoststate, resource, address6, alerttype,
-                 event, servicedisplayname, text, severity, state_type, max_attempts,
+                 event, servicedisplayname, text, severity, state_type, max_attempts, service,
                  notification_type, notification_author, notification_comment, icingaweb2url, ack, attempts, vars, groups):
 
     hostdisplayname = hostname if hostdisplayname is None else hostdisplayname
@@ -245,21 +245,22 @@ def notification(token, time,
 
     # Create an alertID from the hostname.servicename so we can always find it to delete it etc.
     # alert_id = str(uuid.uuid3(uuid.NAMESPACE_DNS, f'{hostdisplayname}.{servicename}'))
+
     alert = Alert(
                   resource=resource,
                   event=f'{event}',
-                  service=[event],
-                  severity=severity_mapping.get(severity),
+                  service=[service],
+                  severity=severity_mapping.get(severity) or 'warning',
                   correlate=[event],
                   value=f'{attempts}/{max_attempts} ({state_type})',
                   text=f'{notification_type} {text}',
-                  group=event,
+                  group=resource,
                   environment=ALERTA_ENVIRONMENT,
                   origin=icingaweb2url)
     alert.rawData = alert.json()
-    alert.attributes["moreInfo"] = f"<a href=\"{icingaweb2url}/icingaweb2/dashboard#!/icingaweb2/monitoring/service/show?host={hostname}&service={servicename}\">Incinga GUI</a>"
+    alert.attributes["moreInfo"] = f"<a href=\"{icingaweb2url}/icingaweb2/dashboard#!/icingaweb2/monitoring/service/show?host={hostname}&service={service}\">Incinga GUI</a>"
     apihost: str = icingaweb2url.replace('http', 'https')
-    alert.attributes['externalUrl'] = f'{apihost}:5561'
+    alert.attributes['externalUrl'] = f'{apihost}:5665'
     alert.attributes['alertType'] = alerttype
     log_file.write(f' VARS={vars}')
     log_file.write(f' GOT {token}, {time}, {hostname}, {hostdisplayname}, {hostoutput}, {hoststate}, {resource}, {address6}, \
@@ -286,5 +287,3 @@ def notification(token, time,
 #       add tags and align fields
 #       configurable settings
 #
-
-
