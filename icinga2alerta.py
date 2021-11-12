@@ -224,7 +224,7 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--max-attempts')
 @click.option('--attempts')
 @click.option('--state-type', type=click.Choice(['SOFT', 'HARD']))
-@click.option('--severity')
+@click.option('--severity', type=click.Choice(['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']))
 @click.option('--notification-type', required=True, type=click.Choice(
     ['ACKNOWLEDGEMENT', 'CUSTOM', 'DOWNTIMEEND', 'DOWNTIMEREMOVED', 'DOWNTIMESTART', 'FLAPPINGEND', 'FLAPPINGSTART',
      'PROBLEM', 'RECOVERY']))
@@ -249,7 +249,7 @@ def notification(token, time,
                   resource=resource,
                   event=f'{event}',
                   service=[event],
-                  severity=severity_mapping.get(severity) or 'warning',
+                  severity=severity_mapping.get(severity),
                   correlate=[event],
                   value=f'{attempts}/{max_attempts} ({state_type})',
                   text=f'{notification_type} {text}',
