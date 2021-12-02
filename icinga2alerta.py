@@ -225,6 +225,7 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--attempts')
 @click.option('--state-type', type=click.Choice(['SOFT', 'HARD']))
 @click.option('--severity')
+@click.option('--environment', default=ALERTA_ENVIRONMENT)
 @click.option('--notification-type', required=True, type=click.Choice(
     ['ACKNOWLEDGEMENT', 'CUSTOM', 'DOWNTIMEEND', 'DOWNTIMEREMOVED', 'DOWNTIMESTART', 'FLAPPINGEND', 'FLAPPINGSTART',
      'PROBLEM', 'RECOVERY']))
@@ -237,7 +238,7 @@ def daemon(token, icinga2_cacert, icinga2_api_url, icinga2_api_user, icinga2_api
 @click.option('--groups')
 def notification(token, time,
                  hostname, hostdisplayname, hostoutput, hoststate, resource, address6, alerttype,
-                 event, servicedisplayname, text, severity, state_type, max_attempts, service,
+                 event, servicedisplayname, text, severity, state_type, max_attempts, service, environment,
                  notification_type, notification_author, notification_comment, icingaweb2url, ack, attempts, vars, groups):
 
     hostdisplayname = hostname if hostdisplayname is None else hostdisplayname
@@ -255,7 +256,7 @@ def notification(token, time,
                   value=f'{attempts}/{max_attempts} ({state_type})',
                   text=f'{notification_type} {text}',
                   group=resource,
-                  environment=ALERTA_ENVIRONMENT,
+                  environment=environment,
                   origin=icingaweb2url)
     alert.rawData = alert.json()
     alert.attributes["moreInfo"] = f"<a href=\"{icingaweb2url}/icingaweb2/dashboard#!/icingaweb2/monitoring/service/show?host={hostname}&service={service}\">Incinga GUI</a>"
