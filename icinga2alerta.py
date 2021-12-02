@@ -265,7 +265,7 @@ def notification(token, time,
     alert.attributes['alertType'] = alerttype
     log_file.write(f' VARS={vars}')
     log_file.write(f' GOT {token}, {time}, {hostname}, {hostdisplayname}, {hostoutput}, {hoststate}, {resource}, {address6}, \
-    {event}, {servicedisplayname}, {text}, {severity}, {state_type}, {max_attempts}, \
+    {event}, {servicedisplayname}, {text}, {severity}, {state_type}, {max_attempts}, {environment}\
     {notification_type}, {notification_author}, {notification_comment}, {icingaweb2url}, {ack}, {attempts}, {vars}, \
     {groups}')
 
