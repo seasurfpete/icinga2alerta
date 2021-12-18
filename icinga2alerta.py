@@ -67,6 +67,7 @@ class Alert(BaseModel):
 
 severity_mapping = {
     "Up": "ok",
+    "UP": "ok",
     "OK": "ok",
     "Down": "critical",
     "DOWN": "critical",
@@ -275,6 +276,9 @@ def notification(token, time,
 
     elif notification_type == "CUSTOM":
         add_note_to_alert(alert, f'{notification_author}: {notification_comment}')
+
+    elif notification_type == "RECOVERY":
+        close_alert(alert)
 
     else:
         # to close we can send a status of ok, this seems to work as we need to match an id from the values
