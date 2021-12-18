@@ -248,9 +248,14 @@ def notification(token, time,
     # Create an alertID from the hostname.servicename so we can always find it to delete it etc.
     # alert_id = str(uuid.uuid3(uuid.NAMESPACE_DNS, f'{hostdisplayname}.{servicename}'))
 
+    if alerttype == 'host':
+        sync_event = f"{hostdisplayname} HOST DOWN"
+    else:
+        sync_event = event
+
     alert = Alert(
                   resource=resource,
-                  event=f'{event}',
+                  event=f'{sync_event}',
                   service=[service],
                   severity=severity_mapping.get(severity) or 'warning',
                   correlate=[event],
