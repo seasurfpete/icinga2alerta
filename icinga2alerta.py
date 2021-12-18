@@ -265,10 +265,12 @@ def notification(token, time,
     alert.attributes['externalUrl'] = f'{apihost}:5665'
     alert.attributes['alertType'] = alerttype
     log_file.write(f' VARS={vars}')
-    log_file.write(f' GOT {token}, {time}, {hostname}, {hostdisplayname}, {hostoutput}, {hoststate}, {resource}, {address6}, \
-    {event}, {servicedisplayname}, {text}, {severity}, {state_type}, {max_attempts}, env={environment},\
-    {notification_type}, {notification_author}, {notification_comment}, {icingaweb2url}, {ack}, {attempts}, {vars}, \
-    {groups}')
+    log_file.write(f' GOT toek={token}, time={time}, hostname={hostname}, hostdisplayname={hostdisplayname}, hostoutput={hostoutput}, hoststate={hoststate}, resource={resource}, '
+                   f'address={address6}, \
+    event={event}, servicedisplayname={servicedisplayname}, text={text}, severity={severity}, state_type={state_type}, max_attempts={max_attempts}, env={environment},\
+    notification_type={notification_type}, notification_author={notification_author}, notification_comment={notification_comment}, icinga2url={icingaweb2url}, ack={ack}, attempts={attempts}, '
+                   f'{vars}, \
+    groups={groups}')
 
     if notification_type == "ACKNOWLEDGEMENT":
         # alert was ack'd in icinga, ack in alerta
